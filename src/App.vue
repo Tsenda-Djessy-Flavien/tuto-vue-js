@@ -1,4 +1,17 @@
 <template>
+  <Button>
+    <strong>Demo</strong>
+    de bouton
+  </Button>
+  <hr />
+  <Layout>
+    <!-- v-slot:header peut être ecrit comme ceci : #header -->
+    <template #header> En tête </template>
+    <template #aside> sidebar </template>
+    <template #main> main </template>
+    <template #footer> footer </template>
+  </Layout>
+  <hr />
   <form action="" @submit.prevent="addTodo">
     <input
       v-model="newTodo"
@@ -11,10 +24,17 @@
   <div v-if="todos.length == 0">Aucune tâche disponible.</div>
   <div v-else>
     <ul>
-      <li v-for="(todo, index) in sortedTodos" :key="index">
-        <input v-model="todo.completed" type="checkbox" name="todo" />
-        <span :class="{ completed: todo.completed }">{{ todo.title }}</span>
-        <button type="button" @click="deleteTodo(index)">supprimer</button>
+      <li
+        v-for="(todo, index) in sortedTodos"
+        :key="index"
+        :class="{ completed: todo.completed }"
+      >
+        <Checkbox
+          :label="todo.title"
+          v-model="todo.completed"
+          @check="console.log('coché')"
+          @uncheck="console.log('non coché')"
+        />
       </li>
     </ul>
   </div>
@@ -31,6 +51,9 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import Checkbox from "./Checkbox.vue";
+import Button from "./Button.vue";
+import Layout from "./Layout.vue";
 
 const todos = ref([
   {
