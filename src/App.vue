@@ -1,78 +1,90 @@
 <template>
-  <div>compteur: {{ count }}</div>
-  <div v-if="count >= 5">Vous avez cliquer plus de 5 fois</div>
-  <div v-else>Vous avez cliqué moins de 5 fois</div>
-  <button @click="increment" type="submit">Incrémenter</button>
-  <button @click="decriment" type="submit">decrémenter</button>
-  <hr />
-  <div v-html="firstName"></div>
-  <hr />
-  <ul>
-    <li v-for="(movie, index) in movies" :key="index">
-      {{ movie }}
-      <button @click="deleteMovie(index)" type="submit">supprimer</button>
-    </li>
-  </ul>
-  <button @click="sortMovie" type="submit">réorganiser</button>
-  <hr />
-  <form action="">
+  <form action="" @submit.prevent="addTodo">
     <input
+      v-model="newTodo"
       type="text"
-      name="movie"
-      placeholder="enter un film"
-      v-model="movieName"
+      name="todo"
+      placeholder="Entrer une taches"
     />
-    <button type="submit" @click="addNewMovie">Ajouter un film</button>
+    <button type="submit" @click.prevent="addTodo">Ajouter</button>
   </form>
-  <hr />
-  <ul>
-    <li>{{ person.firstName }}</li>
-    <li>{{ person.lastName }}</li>
-    <li>{{ person.age }}</li>
-  </ul>
-  <!-- prevent c'est comme si tu mettais e.preventDefault(); -->
-  <button type="submit" @click.prevent="ramdonAge">changer age</button>
+  <div v-if="todos.length == 0">Aucune tâche disponible.</div>
+  <div v-else>
+    <ul>
+      <li v-for="(todo, index) in sortedTodos" :key="index">
+        <input v-model="todo.completed" type="checkbox" name="todo" />
+        <span :class="{ completed: todo.completed }">{{ todo.title }}</span>
+        <button type="button" @click="deleteTodo(index)">supprimer</button>
+      </li>
+    </ul>
+  </div>
+  <p v-if="remainingTodos > 0">
+    {{ remainingTodos }} tache{{ remainingTodos > 1 ? "s" : "" }} à faire
+  </p>
+  <div>
+    <label>
+      <input v-model="hideCompleted" type="checkbox" />
+      Masquer les tâches complétées
+    </label>
+  </div>
 </template>
 
 <script setup>
-import { ref } from "vue"; // ref pour mettre à jour les variable qui va evolué au fur du temps
+import { computed, ref } from "vue";
 
-const count = ref(0);
-const firstName = "<span>html ajouté</span>";
-const movies = ref(["Titanic", "Spiderman", "Advengers"]);
-const movieName = ref("");
+const todos = ref([
+  {
+    title: "Tache à faire",
+    completed: true,
+    date: 1020302103,
+  },
+]);
+const newTodo = ref("");
+const hideCompleted = ref(false);
 
-const person = ref({
-  firstName: "Djessy Flavien",
-  lastName: "Tsenda",
-  age: 29,
+const addTodo = () => {
+  if (newTodo.value.trim() !== "") {
+    todos.value.push({
+      title: newTodo.value,
+      completed: false,
+      date: Date.now(),
+    });
+    newTodo.value = "";
+  }
+};
+const deleteTodo = (index) => {
+  todos.value.splice(index, 1);
+};
+
+//---- 1 method
+const sortedTodos = computed(() => {
+  console.log("demo");
+
+  const sorted = todos.value.toSorted((a, b) =>
+    a.completed > b.completed ? 1 : -1
+  );
+
+  if (hideCompleted.value) {
+    return sorted.filter((todo) => !todo.completed);
+  }
+
+  return sorted;
 });
 
-const decriment = () => {
-  count.value--;
-};
-const increment = (event) => {
-  console.log(event);
-  count.value++;
-};
+// 2 method
+// const sortedTodos = computed(() => {
+//   return todos.value.slice().sort((a, b) => a.completed - b.completed);
+// });
 
-const deleteMovie = (index) => {
-  movies.value.splice(index, 1);
-};
-
-const sortMovie = () => {
-  movies.value.sort((a, b) => a.localeCompare(b));
-};
-
-const addNewMovie = (e) => {
-  e.preventDefault();
-  if (movieName.value != "") {
-    movies.value.push(movieName.value);
-  }
-  movieName.value = "";
-};
-
-const ramdonAge = () => {
-  person.value.age = Math.round(Math.random() * 100);
-};
+const remainingTodos = computed(() => {
+  return todos.value.filter((todo) => todo.completed == false).length;
+});
+console.log(remainingTodos);
 </script>
+
+<style scoped>
+.completed {
+  text-decoration: line-through;
+  color: gray;
+}
+</style>
